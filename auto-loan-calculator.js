@@ -27,7 +27,7 @@ function newtonRaphsonMethod(principal, monthlyPayment, numPayments) {
 
   do {
     const f = principal * rate * (1 - Math.pow(1 + rate, -numPayments)) - monthlyPayment;
-    const f_prime = principal * (Math.pow(1 + rate, -numPayments) * (numPayments * rate - numPayments + 1) + rate);
+    const f_prime = principal * (1 - Math.pow(1 + rate, -numPayments - 1)) - monthlyPayment * (-numPayments * Math.pow(1 + rate, -numPayments - 1));
     deltaRate = -f / f_prime;
     rate += deltaRate;
   } while (Math.abs(deltaRate) > epsilon);

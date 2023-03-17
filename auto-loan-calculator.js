@@ -1,42 +1,36 @@
-document.getElementById("calculateButton").addEventListener("click", function () {
+document.getElementById("calculateButton").addEventListener("click", function() {
+  const purchasePrice = parseFloat(document.getElementById("purchasePrice").value);
+  const monthlyPayments = parseFloat(document.getElementById("monthlyPayments").value);
+  const numPayments = parseInt(document.getElementById("numPayments").value);
 
-    const purchasePrice = parseFloat(document.getElementById("purchasePrice").value);
-    const monthlyPayments = parseFloat(document.getElementById("monthlyPayments").value);
-    const numPayments = parseInt(document.getElementById("numPayments").value);
+  const rate = newtonRaphsonMethod(purchasePrice, monthlyPayments, numPayments);
 
-    const interestRate = calculateInterestRate(purchasePrice, monthlyPayments, numPayments);
-    const totalInterestPaid = (monthlyPayments * numPayments) - purchasePrice;
-    const totalCostOfVehicle = purchasePrice + totalInterestPaid;
+  if (!isNaN(rate)) {
+    const interestRate = (rate * 12 * 100).toFixed(2);
+    const totalInterestPaid = ((monthlyPayments * numPayments) - purchasePrice).toFixed(2);
+    const totalCostOfVehicle = (purchasePrice + parseFloat(totalInterestPaid)).toFixed(2);
 
-    document.getElementById("interestRate").textContent = interestRate.toFixed(2);
-    document.getElementById("totalInterestPaid").textContent = totalInterestPaid.toFixed(2);
-    document.getElementById("totalCostOfVehicle").textContent = totalCostOfVehicle.toFixed(2);
+    document.getElementById("interestRate").textContent = interestRate;
+    document.getElementById("totalInterestPaid").textContent = totalInterestPaid;
+    document.getElementById("totalCostOfVehicle").textContent = totalCostOfVehicle;
+  } else {
+    document.getElementById("interestRate").textContent = "Error";
+    document.getElementById("totalInterestPaid").textContent = "Error";
+    document.getElementById("totalCostOfVehicle").textContent = "Error";
+  }
 });
 
-function calculateInterestRate(purchasePrice, monthlyPayments, numPayments) {
-    let rate = 0.1;
-    let precision = 0.0001;
-    let maxIterations = 1000;
-    let currentIteration = 0;
+function newtonRaphsonMethod(principal, monthlyPayment, numPayments) {
+  const epsilon = 0.0000001;
+  let rate = 0.05 / 12;
+  let deltaRate;
 
-    while (Math.abs(monthlyPayments - calculateMonthlyPayment(purchasePrice, rate, numPayments)) > precision && currentIteration < maxIterations) {
-        rate = rate - (calculateMonthlyPayment(purchasePrice, rate, numPayments) - monthlyPayments) / calculateDerivative(purchasePrice, rate, numPayments);
-        currentIteration++;
-    }
+  do {
+    const f = principal * rate * Math.pow(1 + rate, numPayments) / (Math.pow(1 + rate, numPayments) - 1) - monthlyPayment;
+    const f_prime = principal * (Math.pow(1 + rate, numPayments) * (numPayments * rate - numPayments + 1) + rate) / (Math.pow(1 + rate, 2 * numPayments) - 2 * Math.pow(1 + rate, numPayments) + 1);
+    deltaRate = -f / f_prime;
+    rate += deltaRate;
+  } while (Math.abs(deltaRate) > epsilon);
 
-    return rate * 12 * 100;
-}
-
-function calculateMonthlyPayment(principal, rate, numPayments) {
-    const monthlyRate = rate / 12;
-    return principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
-}
-
-function calculateDerivative(principal, rate, numPayments) {
-    const monthlyRate = rate / 12;
-    const a = Math.pow(1 + monthlyRate, numPayments);
-    const b = Math.pow(1 + monthlyRate, numPayments) - 1;
-    const numerator = principal * monthlyRate * a * (a - (numPayments * (a - 1)));
-    const denominator = b * b * (1 + monthlyRate);
-    return numerator / denominator;
+  return rate;
 }
